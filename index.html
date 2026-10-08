@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sayohat Rejalashtiruvchi — O'zbekiston bo'ylab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['Inter','sans-serif'], display: ['Poppins','sans-serif'] },
+    colors: { brand: { 50:'#eef2ff',100:'#e0e7ff',500:'#6366f1',600:'#4f46e5',700:'#4338ca',900:'#1e1b4b' } }
+  } }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', sans-serif; background: #f5f7ff; color: #1e293b; }
+  .glass { background: rgba(255,255,255,.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,.7); }
+  .hero { background: radial-gradient(1200px 500px at 85% -10%, rgba(45,212,191,.45), transparent 60%), linear-gradient(135deg,#1e1b4b 0%,#4338ca 55%,#0d9488 130%); }
+  .tl-line::before { content:''; position:absolute; left:11px; top:6px; bottom:-18px; width:2px; background: linear-gradient(#6366f1,#14b8a6); opacity:.35; }
+  .tl-item:last-child .tl-line::before { display:none; }
+  .card-img { background-size: cover; background-position: center; }
+  input[type=range] { accent-color: #4f46e5; }
+  .toast { transition: all .3s; }
+  @media print {
+    body { background:#fff; }
+    .no-print, header nav, footer { display:none !important; }
+    .glass { background:#fff !important; backdrop-filter:none; border:1px solid #e2e8f0; box-shadow:none !important; }
+    .hero { background:#fff !important; color:#000 !important; padding:8px 0 !important; }
+    .hero * { color:#000 !important; }
+    section { break-inside: avoid; }
+    .day-panel { display:block !important; }
+  }
+</style>
+</head>
+<body class="antialiased">
+
+<!-- HEADER -->
+<header class="sticky top-0 z-40 glass no-print">
+  <nav class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-2 font-display font-bold text-brand-700 text-lg">
+      <span class="text-2xl">🧭</span> SayohatReja
+    </a>
+    <div class="hidden md:flex gap-6 text-sm font-medium text-slate-600">
+      <a href="#marshrut" class="hover:text-brand-600">Marshrut</a>
+      <a href="#joylar" class="hover:text-brand-600">Joylar</a>
+      <a href="#kalkulyator" class="hover:text-brand-600">Xarajatlar</a>
+      <a href="#yuklash" class="hover:text-brand-600">Yuklab olish</a>
+    </div>
+    <button onclick="exportTxt()" class="text-sm bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl font-medium transition">⬇ Rejani yuklash</button>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section id="top" class="hero text-white">
+  <div class="max-w-6xl mx-auto px-4 py-14 md:py-20">
+    <p class="inline-block bg-white/15 rounded-full px-4 py-1 text-sm mb-4">✨ Aqlli sayohat rejalashtiruvchi</p>
+    <h1 class="font-display font-extrabold text-3xl md:text-5xl leading-tight max-w-3xl">Sayohatingizni <span class="text-teal-300">mukammal</span> rejalashtiring</h1>
+    <p class="mt-4 text-white/80 max-w-2xl">Shaharni tanlang, kunlar sonini belgilang — soatbay marshrut, diqqatga sazovor joylar, eng yaxshi borish vaqti va xarajatlar smetasi bir joyda.</p>
+
+    <div class="glass rounded-2xl p-4 md:p-5 mt-8 grid md:grid-cols-3 gap-4 text-slate-800 shadow-xl no-print">
+      <label class="block">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Shahar</span>
+        <select id="citySel" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none"></select>
+      </label>
+      <label class="block">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Sayohat kunlari: <b id="daysLbl" class="text-brand-600">3</b></span>
+        <input id="daysRange" type="range" min="1" max="7" value="3" class="mt-3 w-full">
+      </label>
+      <label class="block">
+        <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Sayohatchilar soni</span>
+        <input id="people" type="number" min="1" max="20" value="2" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 focus:ring-2 focus:ring-brand-500 outline-none">
+      </label>
+    </div>
+  </div>
+</section>
+
+<main class="max-w-6xl mx-auto px-4 py-10 space-y-14">
+
+  <!-- CITY INFO -->
+  <section class="glass rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center gap-4 justify-between">
+    <div>
+      <h2 id="cityTitle" class="font-display font-bold text-2xl text-brand-900"></h2>
+      <p id="cityDesc" class="text-slate-600 mt-1"></p>
+    </div>
+    <span id="cityBest" class="shrink-0 inline-flex items-center gap-2 bg-teal-50 text-teal-700 border border-teal-200 rounded-full px-4 py-2 text-sm font-medium"></span>
+  </section>
+
+  <!-- ITINERARY -->
+  <section id="marshrut">
+    <h2 class="font-display font-bold text-2xl md:text-3xl text-brand-900">🗓 Kunlik marshrut</h2>
+    <p class="text-slate-500 mt-1">Soatbay reja va tavsiya etilgan transport turi.</p>
+    <div id="dayTabs" class="flex flex-wrap gap-2 mt-5 no-print"></div>
+    <div id="dayPanels" class="mt-5"></div>
+  </section>
+
+  <!-- PLACES -->
+  <section id="joylar">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="font-display font-bold text-2xl md:text-3xl text-brand-900">📍 Albatta ko'rish kerak joylar</h2>
+        <p class="text-slate-500 mt-1">Rejaga qo'shish uchun joyni belgilang — chipta narxi kalkulyatorga qo'shiladi.</p>
+      </div>
+      <button onclick="selectAllPlaces()" class="text-sm text-brand-600 hover:underline no-print">Hammasini tanlash</button>
+    </div>
+    <div id="placeGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6"></div>
+  </section>
+
+  <!-- CALCULATOR -->
+  <section id="kalkulyator">
+    <h2 class="font-display font-bold text-2xl md:text-3xl text-brand-900">💰 Xarajatlar kalkulyatori</h2>
+    <p class="text-slate-500 mt-1">Qiymatlarni o'zgartiring — natija avtomatik yangilanadi. Narxlar taxminiy.</p>
+
+    <div class="grid lg:grid-cols-5 gap-6 mt-6">
+      <div class="lg:col-span-3 glass rounded-3xl p-6 shadow-sm space-y-6 no-print">
+        <div>
+          <span class="text-sm font-semibold text-slate-700">🏨 Turar joy toifasi</span>
+          <div id="hotelOpts" class="grid grid-cols-3 gap-3 mt-2"></div>
+        </div>
+        <div>
+          <span class="text-sm font-semibold text-slate-700">🍽 Ovqatlanish budjeti (kuniga, 1 kishiga)</span>
+          <div id="foodOpts" class="grid grid-cols-3 gap-3 mt-2"></div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">🚕 Shahar ichidagi transport</span>
+            <select id="transSel" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500"></select>
+          </label>
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">🚆 Shaharlararo yo'l (1 kishiga, borish-qaytish)</span>
+            <input id="interCity" type="number" min="0" step="10000" value="300000" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500">
+          </label>
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">🎟 Qo'shimcha biletlar / suvenir (jami)</span>
+            <input id="extra" type="number" min="0" step="10000" value="100000" class="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500">
+          </label>
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">💱 Valyuta</span>
+            <div class="mt-1 flex gap-2">
+              <select id="cur" class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="UZS">So'm (UZS)</option>
+                <option value="USD">AQSH dollari (USD)</option>
+              </select>
+              <input id="rate" type="number" min="1" value="12500" title="1 USD = ? so'm" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <span class="text-xs text-slate-400">1 USD = ? so'm (kursni o'zingiz yangilang)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="lg:col-span-2 rounded-3xl p-6 text-white shadow-xl bg-gradient-to-br from-brand-600 to-teal-600">
+        <h3 class="font-display font-semibold text-lg">Taxminiy smeta</h3>
+        <div id="breakdown" class="mt-4 space-y-3 text-sm"></div>
+        <div class="border-t border-white/30 mt-5 pt-5">
+          <p class="text-white/80 text-sm">Jami xarajat</p>
+          <p id="totalOut" class="font-display font-extrabold text-3xl md:text-4xl mt-1"></p>
+          <div class="grid grid-cols-2 gap-3 mt-4 text-sm">
+            <div class="bg-white/15 rounded-xl p-3"><p class="text-white/70 text-xs">Kuniga</p><p id="perDayOut" class="font-semibold"></p></div>
+            <div class="bg-white/15 rounded-xl p-3"><p class="text-white/70 text-xs">Bir kishiga</p><p id="perPersonOut" class="font-semibold"></p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPORT -->
+  <section id="yuklash" class="glass rounded-3xl p-6 md:p-8 shadow-sm text-center no-print">
+    <h2 class="font-display font-bold text-2xl text-brand-900">📥 Rejani saqlab oling</h2>
+    <p class="text-slate-500 mt-1 max-w-xl mx-auto">Marshrut, tanlangan joylar va xarajatlar smetasini bir tugma bilan yuklab oling yoki chop eting.</p>
+    <div class="flex flex-wrap justify-center gap-3 mt-5">
+      <button onclick="exportTxt()" class="bg-brand-600 hover:bg-brand-700 text-white px-5 py-3 rounded-xl font-medium transition">📄 Matn (.txt) yuklash</button>
+      <button onclick="printPlan()" class="bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl font-medium transition">📑 PDF sifatida saqlash</button>
+      <button onclick="printPlan()" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-3 rounded-xl font-medium transition">🖨 Chop etish</button>
+    </div>
+    <p class="text-xs text-slate-400 mt-3">PDF uchun ochilgan oynada "Printer" o'rniga "PDF sifatida saqlash" (Save as PDF) ni tanlang.</p>
+  </section>
+</main>
+
+<footer class="text-center text-sm text-slate-400 py-8 no-print">
+  © 2026 SayohatReja · Narxlar va vaqtlar taxminiy, safardan oldin tekshirib oling.
+</footer>
+
+<div id="toast" class="toast no-print fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-5 py-3 rounded-xl shadow-xl opacity-0 pointer-events-none z-50"></div>
+
+<script>
+/* ---------- MA'LUMOTLAR ---------- */
+const CITIES = {
+  samarqand: {
+    name: "Samarqand", emoji: "🕌",
+    desc: "Sharqning durdonasi — Amir Temur davri me'morchiligi, ko'k gumbazlar va qadimiy bozorlar shahri.",
+    best: "Eng yaxshi mavsum: Aprel–Iyun va Sentabr–Oktabr",
+    places: [
+      { id:"s1", name:"Registon maydoni", emoji:"🏛", price:60000, dur:"1.5 soat", best:["🌇 Quyosh botishi va kechki yoritish","📅 Bahor va Kuz"], desc:"Ulug'bek, Sherdor va Tillakori madrasalari joylashgan mashhur maydon.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Registan_Samarkand.jpg?width=700" },
+      { id:"s2", name:"Go'ri Amir maqbarasi", emoji:"🕌", price:40000, dur:"1 soat", best:["🌅 Ertalab 08:00–10:00 — odam kam"], desc:"Amir Temur va temuriylar avlodi dafn etilgan maqbara.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Gur-e-Amir.jpg?width=700" },
+      { id:"s3", name:"Shohizinda majmuasi", emoji:"💙", price:40000, dur:"1.5 soat", best:["🌅 Ertalab 08:00–10:00","📅 Bahor va Kuz"], desc:"Firuza rangli koshinlar bilan bezatilgan maqbaralar ko'chasi.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Shah-i-Zinda.jpg?width=700" },
+      { id:"s4", name:"Bibixonim masjidi va Siyob bozori", emoji:"🛒", price:30000, dur:"2 soat", best:["☀ Ertalab 09:00–12:00"], desc:"Buyuk masjid xarobalari va yonidagi jonli bozor — non, quritilgan mevalar, ziravorlar.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Bibi-Khanym_Mosque.jpg?width=700" }
+    ],
+    days: [
+      [ ["09:00","Shohizinda majmuasi","Ansambl ichida sayr","piyoda"], ["11:00","Bibixonim masjidi","Tashqi va ichki ko'rik","taksi"], ["13:00","Milliy taomlar tushligi (Samarqand oshi, non)","Siyob bozori atrofi","piyoda"], ["15:00","Siyob bozori","Quritilgan mevalar, suvenir","piyoda"], ["19:00","Registonda kechki yoritish","Quyosh botishi manzarasi","taksi"] ],
+      [ ["09:00","Go'ri Amir maqbarasi","Kam odam vaqti","taksi"], ["11:00","Ulug'bek rasadxonasi","Astronomiya muzeyi","taksi"], ["13:30","Tushlik — shashlik va somsa","Mahalliy choyxona","taksi"], ["15:00","Afrosiyob muzeyi","Qadimiy Samarqand tarixi","taksi"], ["18:00","Registon maydoni","Rasmga tushish va sayr","taksi"] ],
+      [ ["09:00","Konigil qog'oz ishlab chiqarish","Ipak qog'oz ustaxonasi","taksi"], ["12:00","Konigil Meros — tushlik","Milliy taomlar","piyoda"], ["15:00","Sharq madrasalari atrofida erkin sayr","Hunarmandchilik rastalari","taksi"], ["18:00","Xayrlashuv kechki ovqati","Registon ko'rinadigan restoran","taksi"] ]
+    ]
+  },
+  buxoro: {
+    name: "Buxoro", emoji: "🕋",
+    desc: "2500 yillik tarixga ega muqaddas shahar — Poyi Kalon, Labi Hovuz va qadimiy savdo gumbazlari.",
+    best: "Eng yaxshi mavsum: Aprel–May va Sentabr–Oktabr",
+    places: [
+      { id:"b1", name:"Poyi Kalon majmuasi", emoji:"🗼", price:50000, dur:"1.5 soat", best:["🌅 Tong paytida","📅 Bahor va Kuz"], desc:"Kalon minorasi, Kalon masjidi va Mir Arab madrasasi.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Po-i-Kalyan.jpg?width=700" },
+      { id:"b2", name:"Ark qal'asi", emoji:"🏰", price:50000, dur:"1.5 soat", best:["☀ Ertalab 09:00–11:00"], desc:"Buxoro amirlarining qadimiy qarorgohi va muzey.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Ark_of_Bukhara.jpg?width=700" },
+      { id:"b3", name:"Labi Hovuz", emoji:"⛲", price:0, dur:"1 soat", best:["🌇 Kechki payt — yoritilgan manzara"], desc:"Qadimiy hovuz atrofidagi sokin choyxonalar va chinorlar.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Lyab-i_Hauz.jpg?width=700" },
+      { id:"b4", name:"Savdo gumbazlari (Toqi Zargaron)", emoji:"🛍", price:0, dur:"1.5 soat", best:["☀ Kunduzi 10:00–17:00"], desc:"Zargarlik, kulolchilik va gilam do'konlari joylashgan tarixiy bozor.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Toki_Zargaron.jpg?width=700" }
+    ],
+    days: [
+      [ ["08:30","Poyi Kalon majmuasi","Minora va masjid","piyoda"], ["10:30","Ark qal'asi","Muzey ekspozitsiyalari","piyoda"], ["13:00","Plov va lag'mon tushligi","Eski shahar oshxonasi","piyoda"], ["15:00","Toqi Zargaron savdo gumbazlari","Suvenir va gilamlar","piyoda"], ["19:00","Labi Hovuz atrofida kechki sayr","Choyxonada choy","piyoda"] ],
+      [ ["09:00","Ismoil Somoniy maqbarasi","IX asr me'morchiligi","taksi"], ["11:00","Chashmai Ayub","Muqaddas buloq","piyoda"], ["13:00","Tushlik","Buxoro oshi","taksi"], ["15:30","Sitorai Mohi Xosa","Amir yozgi saroyi","taksi"], ["19:30","Milliy raqs shousi","Nodir Devonbegi madrasasida","taksi"] ],
+      [ ["09:00","Chor Minor","Kichik ammo noyob bino","piyoda"], ["11:00","Ustaxonalar — zardo'zlik","Hunarmandlar bilan tanishuv","piyoda"], ["13:00","Xayrlashuv tushligi","Mahalliy restoran","piyoda"], ["15:00","Erkin vaqt / suvenir","Eski shahar ko'chalari","piyoda"] ]
+    ]
+  },
+  xiva: {
+    name: "Xiva", emoji: "🧱",
+    desc: "Ichan-Qal'a — butun shahar ochiq osmon ostidagi muzey. Dunyo merosi ro'yxatidagi sayyohlik marvaridi.",
+    best: "Eng yaxshi mavsum: Aprel–May va Sentabr–Oktabr (yozda juda issiq)",
+    places: [
+      { id:"x1", name:"Ichan-Qal'a", emoji:"🧱", price:150000, dur:"3 soat", best:["🌅 Ertalab 08:00–10:00","🌇 Quyosh botishi"], desc:"Xivaning ichki qal'asi — barcha asosiy yodgorliklarga kirish bitta chipta bilan.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Itchan_Kala.jpg?width=700" },
+      { id:"x2", name:"Kalta Minor", emoji:"🔵", price:0, dur:"30 daqiqa", best:["🌅 Ertalab — yorug'lik chiroyli"], desc:"Tugallanmagan, firuza koshinlar bilan qoplangan mashhur minora.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Kalta_Minor.jpg?width=700" },
+      { id:"x3", name:"Juma masjidi", emoji:"🕌", price:30000, dur:"45 daqiqa", best:["☀ Kunduzi — salqin soya"], desc:"212 ta yog'och ustunli noyob masjid.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Juma_Mosque_Khiva.jpg?width=700" },
+      { id:"x4", name:"Tosh Hovli saroyi", emoji:"👑", price:50000, dur:"1.5 soat", best:["☀ Ertalab 09:00–11:00"], desc:"Xiva xonlarining rang-barang naqshli saroyi.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Tash_Hauli.jpg?width=700" }
+    ],
+    days: [
+      [ ["08:30","Kalta Minor va G'arbiy darvoza","Ichan-Qal'aga kirish","piyoda"], ["10:00","Ko'hna Ark","Xon qarorgohi, ko'rik minorasi","piyoda"], ["13:00","Tushlik — Xorazm tuxum barak, shivit oshi","Mahalliy oshxona","piyoda"], ["15:00","Juma masjidi","Yog'och ustunlar","piyoda"], ["18:30","Devor ustidan quyosh botishi","Eng yaxshi manzara","piyoda"] ],
+      [ ["09:00","Tosh Hovli saroyi","Naqshli ayvonlar","piyoda"], ["11:00","Islom Xo'ja minorasi","Shahar panoramasi","piyoda"], ["13:00","Tushlik","Choyxona","piyoda"], ["15:00","Hunarmandlar rastasi","Ipak gilam, yog'och o'ymakorligi","piyoda"] ],
+      [ ["09:00","Dishan-Qal'a atrofida sayr","Tashqi shahar","taksi"], ["12:00","Xorazm taomlari","Mahalliy restoran","piyoda"], ["15:00","Erkin vaqt","Suvenir va dam olish","piyoda"] ]
+    ]
+  },
+  toshkent: {
+    name: "Toshkent", emoji: "🚇",
+    desc: "Zamonaviy poytaxt: metro saroylari, Chorsu bozori, muzeylar va yashil xiyobonlar.",
+    best: "Eng yaxshi mavsum: Aprel–Iyun va Sentabr–Oktabr",
+    places: [
+      { id:"t1", name:"Toshkent metrosi stansiyalari", emoji:"🚇", price:1500, dur:"1.5 soat", best:["☀ Kunduzi — gavjum soatlardan tashqari"], desc:"Kosmonavtlar, Alisher Navoiy va Buyuk Ipak yo'li stansiyalarining betakror dizayni.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Tashkent_Metro_Kosmonavtlar.jpg?width=700" },
+      { id:"t2", name:"Chorsu bozori", emoji:"🛒", price:0, dur:"2 soat", best:["🌅 Ertalab 08:00–11:00"], desc:"Ko'k gumbazli markaziy bozor — non, ziravor, quruq mevalar.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Chorsu_Bazaar.jpg?width=700" },
+      { id:"t3", name:"Hazrati Imom majmuasi", emoji:"🕌", price:0, dur:"1.5 soat", best:["🌅 Ertalab 09:00–11:00"], desc:"Usmon Qur'oni saqlanadigan muqaddas me'moriy majmua.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Hazrati_Imam_Complex.jpg?width=700" },
+      { id:"t4", name:"Amir Temur xiyoboni va muzeyi", emoji:"🌳", price:30000, dur:"1.5 soat", best:["🌇 Kechki payt — yoritilgan manzara"], desc:"Markaziy xiyobon, Amir Temur haykali va Temuriylar tarixi muzeyi.", img:"https://commons.wikimedia.org/wiki/Special:FilePath/Amir_Timur_Square.jpg?width=700" }
+    ],
+    days: [
+      [ ["09:00","Chorsu bozori","Nonushta va xaridlar","metro"], ["11:30","Hazrati Imom majmuasi","Ziyorat va me'moriy ko'rik","taksi"], ["13:30","Milliy plov markazi","Mashhur Toshkent oshi","taksi"], ["15:30","Toshkent metrosi stansiyalari","Eng chiroyli 5 stansiya","metro"], ["19:00","Amir Temur xiyoboni","Kechki sayr","metro"] ],
+      [ ["10:00","Amaliy san'at muzeyi","O'zbek hunarmandchiligi","taksi"], ["12:30","Tushlik","Zamonaviy o'zbek restorani","taksi"], ["14:30","Mustaqillik maydoni va Ezgulik archasi","Sayr va suratlar","metro"], ["17:00","Magic City / Toshkent dengizi","Dam olish","taksi"] ],
+      [ ["09:30","Alisher Navoiy nomidagi bog'","Ertalabki sayr","metro"], ["12:00","Tushlik","Choyxona","taksi"], ["14:00","Suvenir va sovg'alar","Mustaqillik ko'chasi","metro"], ["18:00","Xayrlashuv kechki ovqati","Panoramali restoran","taksi"] ]
+    ]
+  }
+};
+
+const HOTELS = [
+  { id:"eco", label:"Ekonom", icon:"🛏", price:180000, note:"Hostel / mehmon uyi" },
+  { id:"mid", label:"O'rta", icon:"🏨", price:500000, note:"3–4 yulduzli" },
+  { id:"lux", label:"Lyuks", icon:"💎", price:1500000, note:"5 yulduzli" }
+];
+const FOODS = [
+  { id:"low", label:"Tejamkor", icon:"🥙", price:100000, note:"Oshxona, bozor" },
+  { id:"mid", label:"O'rta", icon:"🍲", price:220000, note:"Restoranlar" },
+  { id:"high", label:"Premium", icon:"🍽", price:450000, note:"Fine dining" }
+];
+const TRANSPORT = [
+  { id:"walk", label:"Piyoda + metro/avtobus", price:20000 },
+  { id:"mix", label:"Aralash (piyoda + taksi)", price:60000 },
+  { id:"taxi", label:"Asosan taksi", price:120000 }
+];
+const TRANS_ICON = { piyoda:"🚶", metro:"🚇", taksi:"🚕" };
+
+/* ---------- HOLAT ---------- */
+const state = { city:"samarqand", days:3, people:2, hotel:"mid", food:"mid", trans:"mix", selected:new Set(), activeDay:1 };
+const $ = id => document.getElementById(id);
+const fmtN = n => Math.round(n).toLocaleString("ru-RU").replace(/\u00a0/g," ");
+function money(uzs){
+  if ($("cur").value === "USD") return "$" + (uzs / (+$("rate").value || 12500)).toLocaleString("en-US",{maximumFractionDigits:0});
+  return fmtN(uzs) + " so'm";
+}
+function toast(msg){
+  const t = $("toast"); t.textContent = msg;
+  t.style.opacity = 1; setTimeout(()=> t.style.opacity = 0, 2500);
+}
+const city = () => CITIES[state.city];
+
+/* ---------- RENDER ---------- */
+function renderCityInfo(){
+  const c = city();
+  $("cityTitle").textContent = c.emoji + " " + c.name;
+  $("cityDesc").textContent = c.desc;
+  $("cityBest").textContent = "🗓 " + c.best;
+}
+
+function buildDay(n){
+  const c = city();
+  if (n <= c.days.length) return c.days[n-1];
+  return [
+    ["10:00","Erkin kun — o'zingiz yoqtirgan joyga qaytish","Sevimli joylar, kafe va suratga olish","piyoda"],
+    ["13:00","Tushlik","Mahalliy oshxona","piyoda"],
+    ["15:00","Hunarmandlar va do'konlar","Suvenir va sovg'alar","taksi"],
+    ["18:00","Dam olish va kechki ovqat","Yoqimli restoran","taksi"]
+  ];
+}
+
+function renderItinerary(){
+  if (state.activeDay > state.days) state.activeDay = 1;
+  $("dayTabs").innerHTML = Array.from({length:state.days},(_,i)=>i+1).map(d =>
+    `<button onclick="setDay(${d})" class="px-4 py-2 rounded-xl text-sm font-medium transition ${d===state.activeDay ? 'bg-brand-600 text-white shadow' : 'bg-white text-slate-600 hover:bg-brand-50 border border-slate-200'}">${d}-kun</button>`
+  ).join("");
+
+  $("dayPanels").innerHTML = Array.from({length:state.days},(_,i)=>i+1).map(d => {
+    const items = buildDay(d);
+    return `<div class="day-panel glass rounded-3xl p-6 shadow-sm ${d===state.activeDay ? '' : 'hidden'}" data-day="${d}">
+      <h3 class="font-display font-semibold text-lg text-brand-700 mb-5">${d}-kun marshruti</h3>
+      <ol>
+      ${items.map((it,idx)=>`
+        <li class="tl-item relative pl-10 pb-6">
+          <span class="tl-line"></span>
+          <span class="absolute left-0 top-1 w-6 h-6 rounded-full bg-gradient-to-br from-brand-500 to-teal-500 text-white text-xs flex items-center justify-center font-semibold">${idx+1}</span>
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span class="font-display font-semibold text-brand-600">${it[0]}</span>
+            <span class="font-semibold">${it[1]}</span>
+          </div>
+          <p class="text-sm text-slate-500 mt-0.5">${it[2]}</p>
+          ${idx>0 ? `<span class="inline-flex items-center gap-1 mt-2 text-xs bg-teal-50 text-teal-700 border border-teal-100 rounded-full px-2.5 py-1">${TRANS_ICON[it[3]]||'🚶'} Transport: ${it[3]}</span>` : ''}
+        </li>`).join("")}
+      </ol>
+    </div>`;
+  }).join("");
+}
+function setDay(d){ state.activeDay = d; renderItinerary(); }
+
+function renderPlaces(){
+  $("placeGrid").innerHTML = city().places.map(p => {
+    const sel = state.selected.has(p.id);
+    return `<article class="glass rounded-3xl overflow-hidden shadow-sm hover:shadow-lg transition flex flex-col ${sel ? 'ring-2 ring-brand-500' : ''}">
+      <div class="h-44 card-img bg-gradient-to-br from-brand-500 to-teal-500 relative flex items-center justify-center text-6xl" style="background-image:url('${p.img}')">
+        <span class="fallback-emoji drop-shadow">${p.emoji}</span>
+        <img src="${p.img}" alt="${p.name}" class="absolute inset-0 w-full h-full object-cover" loading="lazy"
+             onerror="this.remove()" onload="this.previousElementSibling.style.display='none'">
+        <span class="absolute top-3 right-3 bg-white/90 text-brand-700 text-xs font-semibold px-3 py-1 rounded-full">${p.price ? '~' + money(p.price) : 'Bepul'}</span>
+      </div>
+      <div class="p-5 flex-1 flex flex-col">
+        <h3 class="font-display font-semibold text-lg text-brand-900">${p.name}</h3>
+        <p class="text-sm text-slate-600 mt-1 flex-1">${p.desc}</p>
+        <p class="text-sm mt-3 text-slate-700">⏱ O'rtacha <b>${p.dur}</b> ketadi</p>
+        <div class="flex flex-wrap gap-2 mt-3">
+          ${p.best.map(b=>`<span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-full px-2.5 py-1">${b}</span>`).join("")}
+        </div>
+        <button onclick="togglePlace('${p.id}')" class="no-print mt-4 w-full py-2.5 rounded-xl text-sm font-medium transition ${sel ? 'bg-brand-600 text-white' : 'bg-brand-50 text-brand-700 hover:bg-brand-100'}">${sel ? '✓ Rejada' : '+ Rejaga qo\'shish'}</button>
+      </div>
+    </article>`;
+  }).join("");
+}
+function togglePlace(id){
+  state.selected.has(id) ? state.selected.delete(id) : state.selected.add(id);
+  renderPlaces(); calc();
+}
+function selectAllPlaces(){
+  city().places.forEach(p => state.selected.add(p.id));
+  renderPlaces(); calc(); toast("Barcha joylar rejaga qo'shildi");
+}
+
+function optCards(list, key, targetId){
+  $(targetId).innerHTML = list.map(o => `
+    <button onclick="setOpt('${key}','${o.id}')" class="rounded-2xl border p-3 text-center transition ${state[key]===o.id ? 'border-brand-500 bg-brand-50 ring-2 ring-brand-500' : 'border-slate-200 bg-white hover:bg-slate-50'}">
+      <div class="text-2xl">${o.icon}</div>
+      <div class="font-semibold text-sm mt-1">${o.label}</div>
+      <div class="text-xs text-slate-500">${o.note}</div>
+      <div class="text-xs font-semibold text-brand-600 mt-1">${money(o.price)}</div>
+    </button>`).join("");
+}
+function setOpt(key,id){ state[key]=id; renderOpts(); calc(); }
+function renderOpts(){
+  optCards(HOTELS,"hotel","hotelOpts");
+  optCards(FOODS,"food","foodOpts");
+}
+
+/* ---------- KALKULYATOR ---------- */
+function getCosts(){
+  const n = state.days, p = state.people;
+  const nights = Math.max(n - 1, 0) || 1; // 1 kunlik safarda ham bir kechalik hisob
+  const rooms = Math.ceil(p / 2);
+  const hotel = HOTELS.find(h=>h.id===state.hotel).price * nights * rooms;
+  const food = FOODS.find(f=>f.id===state.food).price * n * p;
+  const local = TRANSPORT.find(t=>t.id===state.trans).price * n * Math.ceil(p/ (state.trans==="walk" ? 1 : 3));
+  const inter = (+$("interCity").value || 0) * p;
+  const tickets = city().places.filter(x=>state.selected.has(x.id)).reduce((s,x)=>s+x.price,0) * p;
+  const extra = +$("extra").value || 0;
+  const total = hotel + food + local + inter + tickets + extra;
+  return { hotel, food, local, inter, tickets, extra, total, nights, rooms };
+}
+function calc(){
+  const c = getCosts();
+  const rows = [
+    ["🏨 Turar joy ("+c.nights+" kecha × "+c.rooms+" xona)", c.hotel],
+    ["🍽 Ovqatlanish", c.food],
+    ["🚕 Shahar ichi transport", c.local],
+    ["🚆 Shaharlararo yo'l", c.inter],
+    ["🎟 Kirish biletlari (tanlangan joylar)", c.tickets],
+    ["🛍 Qo'shimcha", c.extra]
+  ];
+  $("breakdown").innerHTML = rows.map(r=>`<div class="flex justify-between gap-3"><span class="text-white/85">${r[0]}</span><span class="font-semibold whitespace-nowrap">${money(r[1])}</span></div>`).join("");
+  $("totalOut").textContent = money(c.total);
+  $("perDayOut").textContent = money(c.total / state.days);
+  $("perPersonOut").textContent = money(c.total / state.people);
+  renderOpts();
+}
+
+/* ---------- EKSPORT ---------- */
+function buildText(){
+  const c = city(), k = getCosts();
+  const L = [];
+  const line = "=".repeat(54);
+  L.push(line, "  SAYOHAT REJASI — " + c.name.toUpperCase(), line);
+  L.push(`Kunlar: ${state.days}   |   Sayohatchilar: ${state.people}`, c.best, "");
+  L.push("KUNLIK MARSHRUT", "-".repeat(54));
+  for (let d=1; d<=state.days; d++){
+    L.push("", `${d}-KUN`);
+    buildDay(d).forEach((it,i)=> L.push(`  ${it[0]}  ${it[1]}${i>0 ? "  ["+it[3]+"]" : ""}\n         ${it[2]}`));
+  }
+  const sel = c.places.filter(p=>state.selected.has(p.id));
+  L.push("", "TANLANGAN JOYLAR", "-".repeat(54));
+  if (!sel.length) L.push("  (Hech qaysi joy tanlanmagan)");
+  sel.forEach(p => L.push(`  • ${p.name} — ${p.price ? "~"+fmtN(p.price)+" so'm" : "Bepul"}, ${p.dur}\n    Eng yaxshi vaqt: ${p.best.join("; ")}`));
+  L.push("", "XARAJATLAR SMETASI", "-".repeat(54));
+  const hotel = HOTELS.find(h=>h.id===state.hotel).label, food = FOODS.find(f=>f.id===state.food).label;
+  L.push(`  Turar joy (${hotel}, ${k.nights} kecha): ${money(k.hotel)}`,
+         `  Ovqatlanish (${food}): ${money(k.food)}`,
+         `  Shahar ichi transport: ${money(k.local)}`,
+         `  Shaharlararo yo'l: ${money(k.inter)}`,
+         `  Kirish biletlari: ${money(k.tickets)}`,
+         `  Qo'shimcha: ${money(k.extra)}`, "",
+         `  JAMI: ${money(k.total)}`,
+         `  Kuniga: ${money(k.total/state.days)}`,
+         `  Bir kishiga: ${money(k.total/state.people)}`, "",
+         "* Narxlar taxminiy. Safardan oldin aniqlashtiring.", line);
+  return L.join("\n");
+}
+function exportTxt(){
+  const blob = new Blob(["\uFEFF"+buildText()], {type:"text/plain;charset=utf-8"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `sayohat-rejasi-${state.city}.txt`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  toast("Reja yuklab olindi ✓");
+}
+function printPlan(){
+  document.querySelectorAll(".day-panel").forEach(p=>p.classList.remove("hidden"));
+  window.print();
+  renderItinerary();
+}
+
+/* ---------- BOSHLASH ---------- */
+function refreshAll(){
+  renderCityInfo(); renderItinerary(); renderPlaces(); calc();
+}
+$("citySel").innerHTML = Object.entries(CITIES).map(([k,c])=>`<option value="${k}">${c.emoji} ${c.name}</option>`).join("");
+$("citySel").value = state.city;
+$("citySel").onchange = e => { state.city = e.target.value; state.selected.clear(); state.activeDay = 1; refreshAll(); };
+$("daysRange").oninput = e => { state.days = +e.target.value; $("daysLbl").textContent = state.days; renderItinerary(); calc(); };
+$("people").oninput = e => { state.people = Math.max(1, +e.target.value || 1); calc(); };
+$("transSel").innerHTML = TRANSPORT.map(t=>`<option value="${t.id}">${t.label}</option>`).join("");
+$("transSel").value = state.trans;
+$("transSel").onchange = e => { state.trans = e.target.value; calc(); };
+["interCity","extra","rate"].forEach(id => $(id).oninput = () => { calc(); renderPlaces(); });
+$("cur").onchange = () => { calc(); renderPlaces(); };
+refreshAll();
+</script>
+</body>
+</html>
